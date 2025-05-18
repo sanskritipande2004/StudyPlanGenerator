@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Study Plan Analytics</h2>
+    <p><strong>Total Study Hours:</strong> {{ total_hours }}</p>
+    <p><strong>Subjects Scheduled:</strong> {{ total_tasks }}</p>
+    <p><strong>Completion Rate:</strong> {{ completion_rate }}%</p>
+
+    <h4 class="mt-4">Study Progress Per Subject:</h4>
+
+    <!-- Chart container -->
+    <canvas id="subjectHoursChart" width="400" height="200"></canvas>
+
+    <!-- Subject progress list -->
+    <ul class="mt-4">
+        {% for subject, total in subject_total_hours.items() %}
+        <li>
+            <strong>{{ subject }}</strong>: {{ subject_completed_hours.get(subject, 0) }} / {{ total }} hours completed
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{{ url_for('view_plan', plan_id=plan_id) }}" class="btn btn-outline-primary mt-3">Back to Plan</a>
+</div>
+
+<!-- Load Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Get data from Flask context
+    const totalHours = JSON.parse('{{ subject_total_hours | tojson | safe }}');
+    const completedHours = JSON.parse('{{ subject_completed_hours | tojson | safe }}');
+
+    const labels = Object.keys(totalHours);
+    const totalData = labels.map(label => totalHours[label]);
+    const completedData = labels.map(label => completedHours[label] || 0);
+
+    const ctx = document.getElementById('subjectHoursChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Completed Hours',
+                    data: completedData,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Total Hours',
+                    data: totalData,
+                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                    borderColor: 'rgba(200, 200, 200, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Hours'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

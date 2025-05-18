@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title">Create Your Study Plan</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('generate') }}" id="studyForm">
+                    <div class="mb-3">
+                        <label for="subjects" class="form-label">Subjects (comma separated)</label>
+                        <input type="text" class="form-control" id="subjects" name="subjects" required
+                               placeholder="e.g. Math, Physics, Chemistry">
+                    </div>
+                    
+                    <div id="difficultyContainer" class="mb-3">
+                        <!-- Difficulty fields will be inserted here -->
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="hours_per_day" class="form-label">Hours per day</label>
+                            <input type="number" class="form-control" id="hours_per_day" 
+                                   name="hours_per_day" min="1" max="8" value="2" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="days" class="form-label">Number of days</label>
+                            <input type="number" class="form-control" id="days" 
+                                   name="days" min="1" max="30" value="7" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Generate Plan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectsInput = document.getElementById('subjects');
+    const difficultyContainer = document.getElementById('difficultyContainer');
+    
+    function createDifficultyFields() {
+        const subjects = subjectsInput.value.split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+        
+        let html = '';
+        
+        if (subjects.length > 0) {
+            html += '<div class="mb-3"><label class="form-label">Subject Difficulties</label>';
+            
+            subjects.forEach(subject => {
+                const safeName = subject.replace(/\s+/g, '_');
+                html += `
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label">${subject}</label>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-select" name="difficulty_${safeName}" required>
+                            <option value="easy">Easy</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                </div>
+                `;
+            });
+            
+            html += '</div>';
+        }
+        
+        difficultyContainer.innerHTML = html;
+    }
+    
+    // Initialize on page load
+    createDifficultyFields();
+    
+    // Update when subjects change
+    subjectsInput.addEventListener('input', createDifficultyFields);
+});
+</script>
+{% endblock %}

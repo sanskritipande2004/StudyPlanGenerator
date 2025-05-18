@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Your Study Plan</h2>
+            <div class="d-flex justify-content-end align-items-center gap-2">
+                <a href="{{ url_for('view_plans') }}" class="btn btn-outline-primary">View All Plans</a>
+                <a href="{{ url_for('analytics', plan_id=plan_id) }}" class="btn btn-outline-info">Analytics</a>
+                <form method="POST" action="{{ url_for('delete_plan', plan_id=plan_id) }}" class="m-0 p-0">
+                    <button type="submit" class="btn btn-outline-danger">Delete Plan</button>
+                </form>
+            </div>
+        </div>
+
+        {% for day in plan %}
+        {% set day_index = loop.index %}
+        <div class="card mb-3">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Day {{ day_index }} - {{ day.date }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for subject in day.subjects %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card {% if subject.completed %}border-success{% endif %}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ subject.name }}</h5>
+                                <p class="card-text">
+                                    <strong>Hours:</strong> {{ subject.hours }}<br>
+                                    <strong>Difficulty:</strong> 
+                                    <span class="badge 
+                                        {% if subject.difficulty == 'easy' %}bg-success
+                                        {% elif subject.difficulty == 'medium' %}bg-warning text-dark
+                                        {% elif subject.difficulty == 'hard' %}bg-danger
+                                        {% else %}bg-secondary
+                                        {% endif %}">
+                                        {{ subject.difficulty|capitalize if subject.difficulty else 'Medium' }}
+                                    </span>
+                                </p>
+                                <div class="form-check">
+                                    <input class="form-check-input status-checkbox" type="checkbox"
+                                           {% if subject.completed %}checked{% endif %}
+                                           data-day="{{ day_index - 1 }}"
+                                           data-subject="{{ loop.index0 }}"
+                                           data-plan-id="{{ plan_id }}"
+                                           id="complete_{{ day_index }}_{{ loop.index }}">
+                                    <label class="form-check-label" for="complete_{{ day_index }}_{{ loop.index }}">
+                                        Completed
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.status-checkbox').forEach(function(checkbox) {
+    checkbox.addEventListener('change', function() {
+        const planId = this.dataset.planId;
+        const dayIndex = parseInt(this.dataset.day);
+        const subjectIndex = parseInt(this.dataset.subject);
+        const completed = this.checked;
+
+        fetch('/update_status', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                plan_id: planId,
+                day_index: dayIndex,
+                subject_index: subjectIndex,
+                completed: completed
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.closest('.card').classList.toggle('border-success', completed);
+            } else {
+                alert('Failed to update status.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred.');
+        });
+    });
+});
+</script>
+{% endblock %}
