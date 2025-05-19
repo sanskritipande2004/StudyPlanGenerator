@@ -190,7 +190,9 @@ def update_status():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-
+@app.route('/version')
+def version():
+    return "App version: 2025-05-19 - deployment test"
 # ✅ Ensure DB tables are created
 with app.app_context():
     db.create_all()
