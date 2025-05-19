@@ -153,6 +153,9 @@ def analytics(plan_id):
 
     completion_rate = (completed_tasks / total_tasks * 100) if total_tasks else 0
 
+    # Calculate total unique subjects count here
+    total_subjects = len(subject_total_hours)
+
     return render_template(
         'analytics.html',
         total_hours=round(total_hours, 2),
@@ -161,9 +164,9 @@ def analytics(plan_id):
         completion_rate=round(completion_rate, 2),
         subject_total_hours=subject_total_hours,
         subject_completed_hours=subject_completed_hours,
-        plan_id=plan_id
+        plan_id=plan_id,
+        total_subjects=total_subjects   # <-- pass it here!
     )
-
 @app.route('/delete/<int:plan_id>', methods=['POST'])
 def delete_plan(plan_id):
     plan = StudyPlan.query.get_or_404(plan_id)
